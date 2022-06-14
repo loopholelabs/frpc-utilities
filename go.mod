@@ -1,4 +1,4 @@
-module frpc-utilities
+module github.com/loopholelabs/frpc-utilities
 
 go 1.18
 
