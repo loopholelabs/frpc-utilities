@@ -9,11 +9,17 @@ import (
 func main() {
 	newLinkedList := pool.NewLinkedList[string]()
 
-	newLinkedList.Insert("Hey!")
+	hey := newLinkedList.Insert("Hey!")
 	newLinkedList.Insert("You")
-	newLinkedList.Insert("Are")
+	are := newLinkedList.Insert("Are")
 	newLinkedList.Insert("Cool")
-	newLinkedList.Insert(":)")
+	smile := newLinkedList.Insert(":)")
+
+	fmt.Println(newLinkedList.ToArray(), newLinkedList.Len())
+
+	newLinkedList.Delete(hey)
+	newLinkedList.Delete(are)
+	newLinkedList.Delete(smile)
 
 	fmt.Println(newLinkedList.ToArray(), newLinkedList.Len())
 }

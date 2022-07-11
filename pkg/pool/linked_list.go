@@ -45,7 +45,26 @@ func (l *LinkedList[T]) Insert(key T) *Node[T] {
 	return newNode
 }
 
-// TODO: Make private and only use in list
+func (l *LinkedList[T]) Delete(node *Node[T]) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	if node == l.head {
+		l.head = node.next
+	}
+
+	if node.next != nil {
+		node.next.prev = node.prev
+	}
+
+	if node.prev != nil {
+		node.prev.next = node.next
+	}
+
+	l.len--
+}
+
+// TODO: Make private and only use in test
 func (l *LinkedList[T]) ToArray() []T {
 	l.lock.Lock()
 	defer l.lock.Unlock()
