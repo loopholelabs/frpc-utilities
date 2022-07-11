@@ -83,8 +83,7 @@ func (l *DoubleLinkedList[T]) Shift() *Node[T] {
 	return &head
 }
 
-// TODO: Make private and only use in test
-func (l *DoubleLinkedList[T]) ToArray() []T {
+func (l *DoubleLinkedList[T]) toArray() []T {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
