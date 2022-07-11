@@ -1,6 +1,7 @@
 package pool
 
 import (
+	"log"
 	"reflect"
 	"testing"
 )
@@ -116,6 +117,153 @@ func TestInsert(t *testing.T) {
 			list := NewDoubleLinkedList[string]()
 
 			tt.before(list)
+
+			if rv := tt.check(list); rv != true {
+				t.Errorf("check DoubleLinkedList.Insert() = %v, want true", rv)
+			}
+		})
+	}
+}
+
+func TestDelete(t *testing.T) {
+	tests := []struct {
+		name   string
+		before func(*DoubleLinkedList[string]) []*Node[string]
+		apply  func(*DoubleLinkedList[string], []*Node[string])
+		check  func(*DoubleLinkedList[string]) bool
+	}{
+		{
+			name: "Works with no inserts",
+			before: func(dll *DoubleLinkedList[string]) []*Node[string] {
+				nodes := []*Node[string]{}
+
+				return nodes
+			},
+			apply: func(dll *DoubleLinkedList[string], n []*Node[string]) {
+				for _, node := range n {
+					dll.Delete(node)
+				}
+			},
+			check: func(dll *DoubleLinkedList[string]) bool {
+				if dll.Len() != 0 {
+					return false
+				}
+
+				return reflect.DeepEqual(dll.toArray(), []string{})
+			},
+		},
+		{
+			name: "Works with 1 insert",
+			before: func(dll *DoubleLinkedList[string]) []*Node[string] {
+				nodes := append([]*Node[string]{}, dll.Insert("One"))
+
+				return nodes
+			},
+			apply: func(dll *DoubleLinkedList[string], n []*Node[string]) {
+				for _, node := range n {
+					dll.Delete(node)
+				}
+			},
+			check: func(dll *DoubleLinkedList[string]) bool {
+				if dll.Len() != 0 {
+					return false
+				}
+
+				log.Println(dll.toArray())
+
+				return reflect.DeepEqual(dll.toArray(), []string{})
+			},
+		},
+		{
+			name: "Works with 2 inserts",
+			before: func(dll *DoubleLinkedList[string]) []*Node[string] {
+				nodes := append([]*Node[string]{}, dll.Insert("One"), dll.Insert("Two"))
+
+				return nodes
+			},
+			apply: func(dll *DoubleLinkedList[string], n []*Node[string]) {
+				for _, node := range n {
+					dll.Delete(node)
+				}
+			},
+			check: func(dll *DoubleLinkedList[string]) bool {
+				if dll.Len() != 0 {
+					return false
+				}
+
+				return reflect.DeepEqual(dll.toArray(), []string{})
+			},
+		},
+		{
+			name: "Works with 100 inserts",
+			before: func(dll *DoubleLinkedList[string]) []*Node[string] {
+				nodes := []*Node[string]{}
+
+				for i := 0; i < 100; i++ {
+					nodes = append(nodes, dll.Insert("Test"))
+				}
+
+				return nodes
+			},
+			apply: func(dll *DoubleLinkedList[string], n []*Node[string]) {
+				for _, node := range n {
+					dll.Delete(node)
+				}
+			},
+			check: func(dll *DoubleLinkedList[string]) bool {
+				if dll.Len() != 0 {
+					return false
+				}
+
+				return reflect.DeepEqual(dll.toArray(), []string{})
+			},
+		},
+		{
+			name: "Can delete the head",
+			before: func(dll *DoubleLinkedList[string]) []*Node[string] {
+				nodes := append([]*Node[string]{}, dll.Insert("One"), dll.Insert("Two"))
+
+				return nodes[0:1]
+			},
+			apply: func(dll *DoubleLinkedList[string], n []*Node[string]) {
+				for _, node := range n {
+					dll.Delete(node)
+				}
+			},
+			check: func(dll *DoubleLinkedList[string]) bool {
+				if dll.Len() != 1 {
+					return false
+				}
+
+				return reflect.DeepEqual(dll.toArray(), []string{"Two"})
+			},
+		},
+		{
+			name: "Can delete the tail",
+			before: func(dll *DoubleLinkedList[string]) []*Node[string] {
+				nodes := append([]*Node[string]{}, dll.Insert("One"), dll.Insert("Two"))
+
+				return nodes[1:]
+			},
+			apply: func(dll *DoubleLinkedList[string], n []*Node[string]) {
+				for _, node := range n {
+					dll.Delete(node)
+				}
+			},
+			check: func(dll *DoubleLinkedList[string]) bool {
+				if dll.Len() != 1 {
+					return false
+				}
+
+				return reflect.DeepEqual(dll.toArray(), []string{"One"})
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			list := NewDoubleLinkedList[string]()
+
+			tt.apply(list, tt.before(list))
 
 			if rv := tt.check(list); rv != true {
 				t.Errorf("check DoubleLinkedList.Insert() = %v, want true", rv)
