@@ -7,13 +7,13 @@ import (
 )
 
 func main() {
-	newLinkedList := pool.NewLinkedList[string]()
+	newLinkedList := pool.NewDoubleLinkedList[string]()
 
-	hey := newLinkedList.Insert("Hey!")
-	newLinkedList.Insert("You")
-	are := newLinkedList.Insert("Are")
-	newLinkedList.Insert("Cool")
-	smile := newLinkedList.Insert(":)")
+	hey := newLinkedList.Insert("First")
+	newLinkedList.Insert("Second")
+	are := newLinkedList.Insert("Third")
+	newLinkedList.Insert("Fourth")
+	smile := newLinkedList.Insert("Fifth")
 
 	fmt.Println(newLinkedList.ToArray(), newLinkedList.Len())
 
@@ -22,4 +22,12 @@ func main() {
 	newLinkedList.Delete(smile)
 
 	fmt.Println(newLinkedList.ToArray(), newLinkedList.Len())
+
+	fmt.Println(newLinkedList.Shift(), newLinkedList.Len())
+
+	fmt.Println(newLinkedList.Shift(), newLinkedList.Len())
+
+	fmt.Println(newLinkedList.Shift(), newLinkedList.Len())
+
+	fmt.Println(newLinkedList.Shift(), newLinkedList.Len())
 }

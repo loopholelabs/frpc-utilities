@@ -2,37 +2,40 @@ package pool
 
 import "sync"
 
-func NewLinkedList[T any]() *LinkedList[T] {
-	return &LinkedList[T]{}
+func NewDoubleLinkedList[T any]() *DoubleLinkedList[T] {
+	return &DoubleLinkedList[T]{}
 }
 
 type Node[T any] struct {
-	prev *Node[T]
-	next *Node[T]
-	key  T
+	prev  *Node[T]
+	next  *Node[T]
+	value T
 }
 
-type LinkedList[T any] struct {
+func (n *Node[T]) Value() T {
+	return n.value
+}
+
+type DoubleLinkedList[T any] struct {
 	lock sync.Mutex
 	head *Node[T]
-	// tail *Node[T]
-	len uint64
+	len  uint64
 }
 
-func (l *LinkedList[T]) Len() uint64 {
+func (l *DoubleLinkedList[T]) Len() uint64 {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
 	return l.len
 }
 
-func (l *LinkedList[T]) Insert(key T) *Node[T] {
+func (l *DoubleLinkedList[T]) Insert(key T) *Node[T] {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
 	newNode := &Node[T]{
-		key:  key,
-		next: l.head,
+		value: key,
+		next:  l.head,
 	}
 
 	if l.head != nil {
@@ -45,7 +48,7 @@ func (l *LinkedList[T]) Insert(key T) *Node[T] {
 	return newNode
 }
 
-func (l *LinkedList[T]) Delete(node *Node[T]) {
+func (l *DoubleLinkedList[T]) Delete(node *Node[T]) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -64,8 +67,24 @@ func (l *LinkedList[T]) Delete(node *Node[T]) {
 	l.len--
 }
 
+func (l *DoubleLinkedList[T]) Shift() *Node[T] {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	var head Node[T]
+	if l.head != nil {
+		head = *l.head
+
+		l.head = l.head.next
+
+		l.len--
+	}
+
+	return &head
+}
+
 // TODO: Make private and only use in test
-func (l *LinkedList[T]) ToArray() []T {
+func (l *DoubleLinkedList[T]) ToArray() []T {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -73,7 +92,7 @@ func (l *LinkedList[T]) ToArray() []T {
 
 	el := l.head
 	for el != nil {
-		out = append(out, el.key)
+		out = append(out, el.value)
 
 		el = el.next
 	}
