@@ -17,8 +17,9 @@
 package pool
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLen(t *testing.T) {
@@ -66,17 +67,15 @@ func TestInsert(t *testing.T) {
 	tests := []struct {
 		name   string
 		before func(*DoubleLinkedList[string])
-		check  func(*DoubleLinkedList[string]) bool
+		check  func(*DoubleLinkedList[string])
 	}{
 		{
 			name:   "Works with no inserts",
 			before: func(dll *DoubleLinkedList[string]) {},
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 0 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(0))
 
-				return reflect.DeepEqual(dll.toArray(), []string{})
+				assert.Equal(t, dll.toArray(), []string{})
 			},
 		},
 		{
@@ -84,12 +83,10 @@ func TestInsert(t *testing.T) {
 			before: func(dll *DoubleLinkedList[string]) {
 				dll.Insert("One")
 			},
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 1 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(1))
 
-				return reflect.DeepEqual(dll.toArray(), []string{"One"})
+				assert.Equal(t, dll.toArray(), []string{"One"})
 			},
 		},
 		{
@@ -98,12 +95,10 @@ func TestInsert(t *testing.T) {
 				dll.Insert("One")
 				dll.Insert("Two")
 			},
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 2 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(2))
 
-				return reflect.DeepEqual(dll.toArray(), []string{"Two", "One"})
+				assert.Equal(t, dll.toArray(), []string{"Two", "One"})
 			},
 		},
 		{
@@ -113,17 +108,15 @@ func TestInsert(t *testing.T) {
 					dll.Insert("Test")
 				}
 			},
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 100 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(100))
 
 				expected := []string{}
 				for i := 0; i < 100; i++ {
 					expected = append(expected, "Test")
 				}
 
-				return reflect.DeepEqual(dll.toArray(), expected)
+				assert.Equal(t, dll.toArray(), expected)
 			},
 		},
 	}
@@ -133,9 +126,7 @@ func TestInsert(t *testing.T) {
 
 			tt.before(list)
 
-			if rv := tt.check(list); rv != true {
-				t.Errorf("check DoubleLinkedList.Insert() = %v, want true", rv)
-			}
+			tt.check(list)
 		})
 	}
 }
@@ -145,7 +136,7 @@ func TestDelete(t *testing.T) {
 		name   string
 		before func(*DoubleLinkedList[string]) []*Node[string]
 		apply  func(*DoubleLinkedList[string], []*Node[string])
-		check  func(*DoubleLinkedList[string]) bool
+		check  func(*DoubleLinkedList[string])
 	}{
 		{
 			name: "Works with no inserts",
@@ -159,12 +150,10 @@ func TestDelete(t *testing.T) {
 					dll.Delete(node)
 				}
 			},
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 0 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(0))
 
-				return reflect.DeepEqual(dll.toArray(), []string{})
+				assert.Equal(t, dll.toArray(), []string{})
 			},
 		},
 		{
@@ -179,12 +168,10 @@ func TestDelete(t *testing.T) {
 					dll.Delete(node)
 				}
 			},
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 0 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(0))
 
-				return reflect.DeepEqual(dll.toArray(), []string{})
+				assert.Equal(t, dll.toArray(), []string{})
 			},
 		},
 		{
@@ -199,12 +186,10 @@ func TestDelete(t *testing.T) {
 					dll.Delete(node)
 				}
 			},
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 0 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(0))
 
-				return reflect.DeepEqual(dll.toArray(), []string{})
+				assert.Equal(t, dll.toArray(), []string{})
 			},
 		},
 		{
@@ -223,12 +208,10 @@ func TestDelete(t *testing.T) {
 					dll.Delete(node)
 				}
 			},
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 0 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(0))
 
-				return reflect.DeepEqual(dll.toArray(), []string{})
+				assert.Equal(t, dll.toArray(), []string{})
 			},
 		},
 		{
@@ -243,12 +226,10 @@ func TestDelete(t *testing.T) {
 					dll.Delete(node)
 				}
 			},
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 1 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(1))
 
-				return reflect.DeepEqual(dll.toArray(), []string{"Two"})
+				assert.Equal(t, dll.toArray(), []string{"Two"})
 			},
 		},
 		{
@@ -263,12 +244,10 @@ func TestDelete(t *testing.T) {
 					dll.Delete(node)
 				}
 			},
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 1 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(1))
 
-				return reflect.DeepEqual(dll.toArray(), []string{"One"})
+				assert.Equal(t, dll.toArray(), []string{"One"})
 			},
 		},
 	}
@@ -278,9 +257,7 @@ func TestDelete(t *testing.T) {
 
 			tt.apply(list, tt.before(list))
 
-			if rv := tt.check(list); rv != true {
-				t.Errorf("check DoubleLinkedList.Delete() = %v, want true", rv)
-			}
+			tt.check(list)
 		})
 	}
 }
@@ -290,30 +267,26 @@ func TestPopFirst(t *testing.T) {
 		name    string
 		before  func(*DoubleLinkedList[string])
 		shiftBy int
-		check   func(*DoubleLinkedList[string]) bool
+		check   func(*DoubleLinkedList[string])
 	}{
 		{
 			name:    "Works with no inserts",
 			before:  func(dll *DoubleLinkedList[string]) {},
 			shiftBy: 0,
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 0 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(0))
 
-				return reflect.DeepEqual(dll.toArray(), []string{})
+				assert.Equal(t, dll.toArray(), []string{})
 			},
 		},
 		{
 			name:    "Works with no inserts and 5 shifts",
 			before:  func(dll *DoubleLinkedList[string]) {},
 			shiftBy: 5,
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 0 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(0))
 
-				return reflect.DeepEqual(dll.toArray(), []string{})
+				assert.Equal(t, dll.toArray(), []string{})
 			},
 		},
 		{
@@ -322,12 +295,10 @@ func TestPopFirst(t *testing.T) {
 				dll.Insert("One")
 			},
 			shiftBy: 1,
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 0 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(0))
 
-				return reflect.DeepEqual(dll.toArray(), []string{})
+				assert.Equal(t, dll.toArray(), []string{})
 			},
 		},
 		{
@@ -338,12 +309,10 @@ func TestPopFirst(t *testing.T) {
 				dll.Insert("Three")
 			},
 			shiftBy: 1,
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 2 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(2))
 
-				return reflect.DeepEqual(dll.toArray(), []string{"Two", "One"})
+				assert.Equal(t, dll.toArray(), []string{"Two", "One"})
 			},
 		},
 		{
@@ -354,12 +323,10 @@ func TestPopFirst(t *testing.T) {
 				dll.Insert("Three")
 			},
 			shiftBy: 3,
-			check: func(dll *DoubleLinkedList[string]) bool {
-				if dll.Len() != 0 {
-					return false
-				}
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(0))
 
-				return reflect.DeepEqual(dll.toArray(), []string{})
+				assert.Equal(t, dll.toArray(), []string{})
 			},
 		},
 	}
@@ -373,9 +340,7 @@ func TestPopFirst(t *testing.T) {
 				list.PopFirst()
 			}
 
-			if rv := tt.check(list); rv != true {
-				t.Errorf("check DoubleLinkedList.Shift() = %v, want true", rv)
-			}
+			tt.check(list)
 		})
 	}
 }
