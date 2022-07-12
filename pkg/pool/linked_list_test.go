@@ -344,3 +344,101 @@ func TestPopFirst(t *testing.T) {
 		})
 	}
 }
+
+func TestIntegration(t *testing.T) {
+	tests := []struct {
+		name   string
+		before func(*DoubleLinkedList[string]) []*Node[string]
+		apply  func(*DoubleLinkedList[string], []*Node[string])
+		check  func(*DoubleLinkedList[string])
+	}{
+		{
+			name: "Can delete something at the end and then insert again",
+			before: func(dll *DoubleLinkedList[string]) []*Node[string] {
+				nodes := append([]*Node[string]{}, dll.Insert("One"), dll.Insert("Two"))
+
+				return nodes[1:]
+			},
+			apply: func(dll *DoubleLinkedList[string], n []*Node[string]) {
+				for _, node := range n {
+					dll.Delete(node)
+				}
+
+				dll.Insert("New")
+			},
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(2))
+
+				assert.Equal(t, dll.toArray(), []string{"New", "One"})
+			},
+		},
+		{
+			name: "Can delete everything then insert again",
+			before: func(dll *DoubleLinkedList[string]) []*Node[string] {
+				nodes := append([]*Node[string]{}, dll.Insert("One"), dll.Insert("Two"))
+
+				return nodes
+			},
+			apply: func(dll *DoubleLinkedList[string], n []*Node[string]) {
+				for _, node := range n {
+					dll.Delete(node)
+				}
+
+				dll.Insert("New")
+			},
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(1))
+
+				assert.Equal(t, dll.toArray(), []string{"New"})
+			},
+		},
+		{
+			name: "Can shift then insert",
+			before: func(dll *DoubleLinkedList[string]) []*Node[string] {
+				nodes := append([]*Node[string]{}, dll.Insert("One"), dll.Insert("Two"), dll.Insert("Three"))
+
+				return nodes
+			},
+			apply: func(dll *DoubleLinkedList[string], n []*Node[string]) {
+				dll.PopFirst()
+				dll.PopFirst()
+
+				dll.Insert("New")
+			},
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(2))
+
+				assert.Equal(t, dll.toArray(), []string{"New", "One"})
+			},
+		},
+		{
+			name: "Can insert one, then delete, then insert",
+			before: func(dll *DoubleLinkedList[string]) []*Node[string] {
+				nodes := append([]*Node[string]{}, dll.Insert("One"))
+
+				return nodes
+			},
+			apply: func(dll *DoubleLinkedList[string], n []*Node[string]) {
+				for _, node := range n {
+					dll.Delete(node)
+				}
+
+				dll.Insert("New")
+			},
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(1))
+
+				assert.Equal(t, dll.toArray(), []string{"New"})
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			list := NewDoubleLinkedList[string]()
+
+			tt.apply(list, tt.before(list))
+
+			tt.check(list)
+		})
+	}
+}
