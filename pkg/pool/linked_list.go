@@ -3,7 +3,7 @@ package pool
 import "sync"
 
 func NewDoubleLinkedList[T any]() *DoubleLinkedList[T] {
-	return &DoubleLinkedList[T]{}
+	return new(DoubleLinkedList[T])
 }
 
 type Node[T any] struct {
@@ -22,35 +22,38 @@ type DoubleLinkedList[T any] struct {
 	len  uint64
 }
 
-func (l *DoubleLinkedList[T]) Len() uint64 {
+func (l *DoubleLinkedList[T]) Len() (len uint64) {
 	l.lock.Lock()
-	defer l.lock.Unlock()
 
-	return l.len
+	len = l.len
+
+	l.lock.Unlock()
+
+	return
 }
 
-func (l *DoubleLinkedList[T]) Insert(key T) *Node[T] {
-	l.lock.Lock()
-	defer l.lock.Unlock()
-
-	newNode := &Node[T]{
+func (l *DoubleLinkedList[T]) Insert(key T) (node *Node[T]) {
+	node = &Node[T]{
 		value: key,
 		next:  l.head,
 	}
 
+	l.lock.Lock()
+
 	if l.head != nil {
-		l.head.prev = newNode
+		l.head.prev = node
 	}
-	l.head = newNode
+	l.head = node
 
 	l.len++
 
-	return newNode
+	l.lock.Unlock()
+
+	return
 }
 
 func (l *DoubleLinkedList[T]) Delete(node *Node[T]) {
 	l.lock.Lock()
-	defer l.lock.Unlock()
 
 	if node == l.head {
 		l.head = node.next
@@ -65,30 +68,30 @@ func (l *DoubleLinkedList[T]) Delete(node *Node[T]) {
 	}
 
 	l.len--
+
+	l.lock.Unlock()
 }
 
-func (l *DoubleLinkedList[T]) Shift() *Node[T] {
+func (l *DoubleLinkedList[T]) Shift() (node *Node[T]) {
 	l.lock.Lock()
-	defer l.lock.Unlock()
 
-	var head Node[T]
 	if l.head != nil {
-		head = *l.head
+		node = l.head
 
 		l.head = l.head.next
 
 		l.len--
 	}
 
-	return &head
+	l.lock.Unlock()
+
+	return
 }
 
-func (l *DoubleLinkedList[T]) toArray() []T {
+func (l *DoubleLinkedList[T]) toArray() (out []T) {
 	l.lock.Lock()
-	defer l.lock.Unlock()
 
-	out := []T{}
-
+	out = []T{}
 	el := l.head
 	for el != nil {
 		out = append(out, el.value)
@@ -96,5 +99,7 @@ func (l *DoubleLinkedList[T]) toArray() []T {
 		el = el.next
 	}
 
-	return out
+	l.lock.Unlock()
+
+	return
 }
