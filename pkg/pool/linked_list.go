@@ -78,19 +78,31 @@ func (l *DoubleLinkedList[T]) Insert(key T) (node *Node[T]) {
 func (l *DoubleLinkedList[T]) Delete(node *Node[T]) {
 	l.lock.Lock()
 
+	decrement := false
 	if node == l.head {
 		l.head = node.next
+
+		decrement = true
 	}
 
 	if node.next != nil {
 		node.next.prev = node.prev
+
+		decrement = true
 	}
 
 	if node.prev != nil {
 		node.prev.next = node.next
+
+		decrement = true
 	}
 
-	l.len--
+	if decrement {
+		l.len--
+	}
+
+	node.prev = nil
+	node.next = nil
 
 	l.lock.Unlock()
 }

@@ -250,6 +250,24 @@ func TestDelete(t *testing.T) {
 				assert.Equal(t, dll.toArray(), []string{"One"})
 			},
 		},
+		{
+			name: "Can delete the same node multiple times",
+			before: func(dll *DoubleLinkedList[string]) []*Node[string] {
+				nodes := append([]*Node[string]{}, dll.Insert("One"), dll.Insert("Two"))
+
+				return append([]*Node[string]{nodes[1]}, nodes[1], nodes[1])
+			},
+			apply: func(dll *DoubleLinkedList[string], n []*Node[string]) {
+				for _, node := range n {
+					dll.Delete(node)
+				}
+			},
+			check: func(dll *DoubleLinkedList[string]) {
+				assert.Equal(t, dll.Len(), uint64(1))
+
+				assert.Equal(t, dll.toArray(), []string{"One"})
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
