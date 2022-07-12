@@ -285,7 +285,7 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestShift(t *testing.T) {
+func TestPopFirst(t *testing.T) {
 	tests := []struct {
 		name    string
 		before  func(*DoubleLinkedList[string])
@@ -370,7 +370,7 @@ func TestShift(t *testing.T) {
 			tt.before(list)
 
 			for i := 0; i < tt.shiftBy; i++ {
-				list.Shift()
+				list.PopFirst()
 			}
 
 			if rv := tt.check(list); rv != true {

@@ -18,26 +18,31 @@ package pool
 
 import "sync"
 
+// NewDoubleLinkedList creates a new double linked list
 func NewDoubleLinkedList[T any]() *DoubleLinkedList[T] {
 	return new(DoubleLinkedList[T])
 }
 
+// Node is a container for data in the double linked list
 type Node[T any] struct {
 	prev  *Node[T]
 	next  *Node[T]
 	value T
 }
 
+// Value returns the data stored in the node container
 func (n *Node[T]) Value() T {
 	return n.value
 }
 
+// DoubleLinkedList is a double linked list
 type DoubleLinkedList[T any] struct {
 	lock sync.Mutex
 	head *Node[T]
 	len  uint64
 }
 
+// Len returns the count of nodes stored in the double linked list
 func (l *DoubleLinkedList[T]) Len() (len uint64) {
 	l.lock.Lock()
 
@@ -48,6 +53,7 @@ func (l *DoubleLinkedList[T]) Len() (len uint64) {
 	return
 }
 
+// Insert adds a new node at the beginning of the double linked list
 func (l *DoubleLinkedList[T]) Insert(key T) (node *Node[T]) {
 	node = &Node[T]{
 		value: key,
@@ -68,6 +74,7 @@ func (l *DoubleLinkedList[T]) Insert(key T) (node *Node[T]) {
 	return
 }
 
+// Insert removes a node from the double linked list
 func (l *DoubleLinkedList[T]) Delete(node *Node[T]) {
 	l.lock.Lock()
 
@@ -88,7 +95,8 @@ func (l *DoubleLinkedList[T]) Delete(node *Node[T]) {
 	l.lock.Unlock()
 }
 
-func (l *DoubleLinkedList[T]) Shift() (node *Node[T]) {
+// PopFirst removes and returns the first node from the double linked list
+func (l *DoubleLinkedList[T]) PopFirst() (node *Node[T]) {
 	l.lock.Lock()
 
 	if l.head != nil {
@@ -104,6 +112,7 @@ func (l *DoubleLinkedList[T]) Shift() (node *Node[T]) {
 	return
 }
 
+// toArray is a helper functions to simplify testing
 func (l *DoubleLinkedList[T]) toArray() (out []T) {
 	l.lock.Lock()
 
