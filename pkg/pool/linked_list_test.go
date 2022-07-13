@@ -363,7 +363,7 @@ func TestPopFirst(t *testing.T) {
 	}
 }
 
-func TestIntegration(t *testing.T) {
+func TestDoubleLinkedListIntegration(t *testing.T) {
 	tests := []struct {
 		name   string
 		before func(*DoubleLinkedList[string]) []*Node[string]
