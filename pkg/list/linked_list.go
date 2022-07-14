@@ -14,7 +14,7 @@
 	limitations under the License.
 */
 
-package pool
+package list
 
 import "sync"
 
