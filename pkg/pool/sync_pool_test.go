@@ -10,6 +10,10 @@ type demoData struct {
 	Test string
 }
 
+func (d *demoData) Reset() {
+	d.Test = ""
+}
+
 func TestPoolIntegration(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -17,7 +21,7 @@ func TestPoolIntegration(t *testing.T) {
 		check  func(*Pool[demoData, *demoData], *demoData)
 	}{
 		{
-			name: "Can allocate the contained value",
+			name: "Can allocate with New()",
 			before: func(p *Pool[demoData, *demoData]) *demoData {
 				return p.New()
 			},
@@ -26,49 +30,59 @@ func TestPoolIntegration(t *testing.T) {
 			},
 		},
 		{
-			name: "Can put and get a non-nil value",
+			name: "Can allocate with Get() if nothing has been Put() before",
 			before: func(p *Pool[demoData, *demoData]) *demoData {
-				v := p.New()
-				v.Test = "Testing"
-
-				p.Put(v)
-
-				return v
+				return p.Get()
 			},
 			check: func(p *Pool[demoData, *demoData], dd *demoData) {
-				assert.Equal(t, "Testing", p.Get().Test)
+				assert.NotNil(t, dd)
 			},
 		},
 		{
-			name: "Can put and get a nil value",
+			name: "Can Put() non-nil and Get() an allocated object",
+			before: func(p *Pool[demoData, *demoData]) *demoData {
+				d := p.Get()
+
+				d.Test = "Testing"
+
+				p.Put(d)
+
+				return nil
+			},
+			check: func(p *Pool[demoData, *demoData], dd *demoData) {
+				assert.Equal(t, "", p.Get().Test)
+			},
+		},
+		{
+			name: "Can Put() nil and Get() an allocated object",
 			before: func(p *Pool[demoData, *demoData]) *demoData {
 				p.Put(nil)
 
 				return nil
 			},
 			check: func(p *Pool[demoData, *demoData], dd *demoData) {
-				assert.Nil(t, p.Get())
+				assert.Equal(t, "", p.Get().Test)
 			},
 		},
 		{
-			name: "Can put, change and get a value",
+			name: "Can Put() multiple times and Get() an allocated object",
 			before: func(p *Pool[demoData, *demoData]) *demoData {
-				v := p.New()
-				v.Test = "Testing"
+				d := p.Get()
 
-				p.Put(v)
+				d.Test = "Testing"
 
-				assert.Equal(t, "Testing", p.Get().Test)
+				p.Put(d)
 
-				v2 := p.New()
-				v2.Test = "Testing 2"
+				d2 := p.Get()
 
-				p.Put(v2)
+				d2.Test = "Testing 2"
 
-				return v2
+				p.Put(d2)
+
+				return nil
 			},
 			check: func(p *Pool[demoData, *demoData], dd *demoData) {
-				assert.Equal(t, "Testing 2", p.Get().Test)
+				assert.Equal(t, "", p.Get().Test)
 			},
 		},
 	}

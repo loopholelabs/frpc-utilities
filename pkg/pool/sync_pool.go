@@ -18,16 +18,18 @@ package pool
 
 import "sync"
 
-type Pointer[T any] interface {
+type PointerWithReset[T any] interface {
 	*T
+
+	Reset()
 }
 
-type Pool[T any, P Pointer[T]] struct {
+type Pool[T any, P PointerWithReset[T]] struct {
 	pool sync.Pool
 	New  func() P
 }
 
-func NewPool[T any, P Pointer[T]](new func() P) *Pool[T, P] {
+func NewPool[T any, P PointerWithReset[T]](new func() P) *Pool[T, P] {
 	return &Pool[T, P]{
 		New: new,
 	}
@@ -35,6 +37,7 @@ func NewPool[T any, P Pointer[T]](new func() P) *Pool[T, P] {
 
 func (p *Pool[T, P]) Put(value P) {
 	if value != nil {
+		value.Reset()
 		p.pool.Put(value)
 	}
 }
@@ -45,5 +48,5 @@ func (p *Pool[T, P]) Get() P {
 		return rv
 	}
 
-	return nil
+	return p.New()
 }
