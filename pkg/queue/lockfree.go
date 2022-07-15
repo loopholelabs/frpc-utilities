@@ -22,9 +22,7 @@ type Pointer[T any] interface {
 	*T
 }
 
-// node is a struct that keeps track of its own position as well as a piece of data
-// stored as an unsafe.Pointer. Normally we would store the pointer to a packet.Packet
-// directly, however benchmarking shows performance improvements with unsafe.Pointer instead
+// node is a struct that keeps track of its own position as well as a piece of data.
 type node[T any, P Pointer[T]] struct {
 	_padding0 [8]uint64 //nolint:structcheck,unused
 	position  uint64

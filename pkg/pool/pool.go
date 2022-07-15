@@ -44,7 +44,7 @@ func (p *Pool[T, P]) Put(value P) {
 
 func (p *Pool[T, P]) Get() P {
 	rv, ok := p.pool.Get().(P)
-	if ok {
+	if ok && rv != nil {
 		return rv
 	}
 

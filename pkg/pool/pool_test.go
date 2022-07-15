@@ -17,6 +17,7 @@
 package pool
 
 import (
+	"crypto/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,6 +29,14 @@ type demoData struct {
 
 func (d *demoData) Reset() {
 	d.Test = ""
+}
+
+type testData struct {
+	Data []byte
+}
+
+func (t *testData) Reset() {
+	t.Data = t.Data[:0]
 }
 
 func TestPoolIntegration(t *testing.T) {
@@ -111,4 +120,55 @@ func TestPoolIntegration(t *testing.T) {
 			tt.check(pool, tt.before(pool))
 		})
 	}
+}
+
+func TestPoolAllocation(t *testing.T) {
+	newTestData := func() *testData {
+		t := new(testData)
+		t.Data = make([]byte, 0, 32)
+		return t
+	}
+
+	d := newTestData()
+	assert.Equal(t, 0, len(d.Data))
+	assert.Equal(t, 32, cap(d.Data))
+
+	dataPool := NewPool[testData, *testData](newTestData)
+
+	randomData := make([]byte, 64)
+	_, err := rand.Read(randomData)
+	assert.NoError(t, err)
+
+	d = dataPool.Get()
+	assert.Equal(t, 0, len(d.Data))
+	assert.Equal(t, 32, cap(d.Data))
+
+	for {
+		d.Data = append(d.Data, randomData...)
+		assert.Equal(t, 64, len(d.Data))
+		assert.Equal(t, 64, cap(d.Data))
+
+		dataPool.Put(d)
+		d = dataPool.Get()
+		if cap(d.Data) == 64 {
+			assert.Equal(t, 0, len(d.Data))
+			assert.Equal(t, 64, cap(d.Data))
+			break
+		}
+	}
+
+	d = dataPool.Get()
+	assert.Equal(t, 0, len(d.Data))
+	assert.Equal(t, 32, cap(d.Data))
+
+	dataPool.Put(nil)
+	d2 := dataPool.Get()
+	assert.Equal(t, 0, len(d2.Data))
+	assert.Equal(t, 32, cap(d2.Data))
+
+	allocs := testing.AllocsPerRun(100, func() {
+		d = dataPool.Get()
+		dataPool.Put(d)
+	})
+	assert.Equal(t, float64(0), allocs)
 }
