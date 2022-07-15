@@ -22,8 +22,7 @@ import (
 )
 
 // NewDouble creates a new double linked list that can function as a
-// FIFO queue when used with the PushBack and PopFront methods, or as a LIFO
-// queue when used with the Push and Pop methods.
+// FIFO queue when used with the Push and Pop methods.
 func NewDouble[T any, P Pointer[T]]() *Double[T, P] {
 	return &Double[T, P]{
 		pool: pool.NewPool[Node[T, P], *Node[T, P]](NewNode[T, P]),
