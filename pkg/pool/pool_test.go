@@ -143,15 +143,19 @@ func TestPoolAllocation(t *testing.T) {
 	assert.Equal(t, 0, len(d.Data))
 	assert.Equal(t, 32, cap(d.Data))
 
-	d.Data = append(d.Data, randomData...)
-	assert.Equal(t, 64, len(d.Data))
-	assert.Equal(t, 64, cap(d.Data))
+	for {
+		d.Data = append(d.Data, randomData...)
+		assert.Equal(t, 64, len(d.Data))
+		assert.Equal(t, 64, cap(d.Data))
 
-	dataPool.Put(d)
-
-	d = dataPool.Get()
-	assert.Equal(t, 0, len(d.Data))
-	assert.Equal(t, 64, cap(d.Data))
+		dataPool.Put(d)
+		d = dataPool.Get()
+		if cap(d.Data) == 64 {
+			assert.Equal(t, 0, len(d.Data))
+			assert.Equal(t, 64, cap(d.Data))
+			break
+		}
+	}
 
 	d = dataPool.Get()
 	assert.Equal(t, 0, len(d.Data))
