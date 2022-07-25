@@ -43,8 +43,8 @@ type Double[T any, P Pointer[T]] struct {
 	len       uint64
 }
 
-// Len returns the count of nodes stored in the double linked list
-func (l *Double[T, P]) Len() (len uint64) {
+// Length returns the count of nodes stored in the double linked list
+func (l *Double[T, P]) Length() (len uint64) {
 	l.lock.Lock()
 	len = l.len
 	l.lock.Unlock()
