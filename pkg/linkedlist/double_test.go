@@ -77,10 +77,7 @@ func TestLen(t *testing.T) {
 			list := NewDouble[StringP, *StringP]()
 
 			tt.before(list)
-
-			if rv := list.Len(); rv != tt.expect {
-				t.Errorf("Double.Len() = %v, want %v", rv, tt.expect)
-			}
+			assert.Equal(t, tt.expect, list.Length())
 		})
 	}
 }
@@ -95,7 +92,7 @@ func TestInsert(t *testing.T) {
 			name:   "Works with no inserts",
 			before: func(dll *Double[StringP, *StringP]) {},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(0))
+				assert.Equal(t, dll.Length(), uint64(0))
 				assert.Equal(t, dll.toArray(), []*StringP{})
 			},
 		},
@@ -105,7 +102,7 @@ func TestInsert(t *testing.T) {
 				dll.Push(NewStringP("One"))
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(1))
+				assert.Equal(t, dll.Length(), uint64(1))
 
 				assert.EqualValues(t, dll.toArray(), []*StringP{NewStringP("One")})
 			},
@@ -117,7 +114,7 @@ func TestInsert(t *testing.T) {
 				dll.Push(NewStringP("Two"))
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(2))
+				assert.Equal(t, dll.Length(), uint64(2))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("One"), NewStringP("Two")})
 			},
@@ -130,7 +127,7 @@ func TestInsert(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(100))
+				assert.Equal(t, dll.Length(), uint64(100))
 
 				var expected []*StringP
 				for i := 0; i < 100; i++ {
@@ -146,7 +143,7 @@ func TestInsert(t *testing.T) {
 				dll.Push(NewStringP("One"))
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(1))
+				assert.Equal(t, dll.Length(), uint64(1))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("One")})
 			},
@@ -158,7 +155,7 @@ func TestInsert(t *testing.T) {
 				dll.PushBack(NewStringP("Two"))
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(2))
+				assert.Equal(t, dll.Length(), uint64(2))
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("Two"), NewStringP("One")})
 			},
 		},
@@ -170,7 +167,7 @@ func TestInsert(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(100))
+				assert.Equal(t, dll.Length(), uint64(100))
 
 				var expected []*StringP
 				for i := 0; i < 100; i++ {
@@ -189,7 +186,7 @@ func TestInsert(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(200))
+				assert.Equal(t, dll.Length(), uint64(200))
 
 				var expected []*StringP
 				for i := 99; i > -1; i-- {
@@ -232,7 +229,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(0))
+				assert.Equal(t, dll.Length(), uint64(0))
 				assert.Equal(t, dll.toArray(), []*StringP{})
 			},
 		},
@@ -248,7 +245,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(0))
+				assert.Equal(t, dll.Length(), uint64(0))
 
 				assert.Equal(t, dll.toArray(), []*StringP{})
 			},
@@ -266,7 +263,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(0))
+				assert.Equal(t, dll.Length(), uint64(0))
 
 				assert.Equal(t, dll.toArray(), []*StringP{})
 			},
@@ -288,7 +285,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(0))
+				assert.Equal(t, dll.Length(), uint64(0))
 
 				assert.Equal(t, dll.toArray(), []*StringP{})
 			},
@@ -306,7 +303,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(1))
+				assert.Equal(t, dll.Length(), uint64(1))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("Two")})
 			},
@@ -324,7 +321,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(1))
+				assert.Equal(t, dll.Length(), uint64(1))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("One")})
 			},
@@ -342,7 +339,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(1))
+				assert.Equal(t, dll.Length(), uint64(1))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("One")})
 			},
@@ -359,7 +356,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(0))
+				assert.Equal(t, dll.Length(), uint64(0))
 
 				assert.Equal(t, dll.toArray(), []*StringP{})
 			},
@@ -376,7 +373,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(0))
+				assert.Equal(t, dll.Length(), uint64(0))
 				assert.Equal(t, dll.toArray(), []*StringP{})
 			},
 		},
@@ -397,7 +394,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(0))
+				assert.Equal(t, dll.Length(), uint64(0))
 
 				assert.Equal(t, dll.toArray(), []*StringP{})
 			},
@@ -415,7 +412,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(1))
+				assert.Equal(t, dll.Length(), uint64(1))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("Two")})
 			},
@@ -433,7 +430,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(1))
+				assert.Equal(t, dll.Length(), uint64(1))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("One")})
 			},
@@ -451,7 +448,7 @@ func TestDelete(t *testing.T) {
 				}
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(1))
+				assert.Equal(t, dll.Length(), uint64(1))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("One")})
 			},
@@ -480,7 +477,7 @@ func TestPopFirst(t *testing.T) {
 			before:  func(dll *Double[StringP, *StringP]) {},
 			shiftBy: 0,
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(0))
+				assert.Equal(t, dll.Length(), uint64(0))
 
 				assert.Equal(t, dll.toArray(), []*StringP{})
 			},
@@ -490,7 +487,7 @@ func TestPopFirst(t *testing.T) {
 			before:  func(dll *Double[StringP, *StringP]) {},
 			shiftBy: 5,
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(0))
+				assert.Equal(t, dll.Length(), uint64(0))
 
 				assert.Equal(t, dll.toArray(), []*StringP{})
 			},
@@ -502,7 +499,7 @@ func TestPopFirst(t *testing.T) {
 			},
 			shiftBy: 1,
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(0))
+				assert.Equal(t, dll.Length(), uint64(0))
 
 				assert.Equal(t, dll.toArray(), []*StringP{})
 			},
@@ -516,7 +513,7 @@ func TestPopFirst(t *testing.T) {
 			},
 			shiftBy: 1,
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(2))
+				assert.Equal(t, dll.Length(), uint64(2))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("Two"), NewStringP("Three")})
 			},
@@ -530,7 +527,7 @@ func TestPopFirst(t *testing.T) {
 			},
 			shiftBy: 3,
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(0))
+				assert.Equal(t, dll.Length(), uint64(0))
 
 				assert.Equal(t, dll.toArray(), []*StringP{})
 			},
@@ -573,7 +570,7 @@ func TestDoubleIntegration(t *testing.T) {
 				dll.Push(NewStringP("New"))
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(2))
+				assert.Equal(t, dll.Length(), uint64(2))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("One"), NewStringP("New")})
 			},
@@ -593,7 +590,7 @@ func TestDoubleIntegration(t *testing.T) {
 				dll.Push(NewStringP("New"))
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(1))
+				assert.Equal(t, dll.Length(), uint64(1))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("New")})
 			},
@@ -612,7 +609,7 @@ func TestDoubleIntegration(t *testing.T) {
 				dll.Push(NewStringP("New"))
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(2))
+				assert.Equal(t, dll.Length(), uint64(2))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("Three"), NewStringP("New")})
 			},
@@ -632,7 +629,7 @@ func TestDoubleIntegration(t *testing.T) {
 				dll.Push(NewStringP("New"))
 			},
 			check: func(dll *Double[StringP, *StringP]) {
-				assert.Equal(t, dll.Len(), uint64(1))
+				assert.Equal(t, dll.Length(), uint64(1))
 
 				assert.Equal(t, dll.toArray(), []*StringP{NewStringP("New")})
 			},
