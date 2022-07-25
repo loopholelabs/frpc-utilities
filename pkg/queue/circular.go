@@ -17,6 +17,12 @@ import (
 	"sync"
 )
 
+// Circular is a circular sized FIFO queue that uses
+// an array of fixed size to store the elements.
+//
+// It is thread safe and extremely performant, however
+// it is a blocking queue and will block the caller
+// if the queue is full or if it is empty.
 type Circular[T any, P Pointer[T]] struct {
 	_padding0 [8]uint64 //nolint:structcheck,unused
 	head      uint64
@@ -36,9 +42,10 @@ type Circular[T any, P Pointer[T]] struct {
 	nodes     []P
 }
 
+// NewCircular creates a new circular queue with the given size.
 func NewCircular[T any, P Pointer[T]](maxSize uint64) *Circular[T, P] {
-	q := &Circular[T, P]{}
-	q.lock = &sync.Mutex{}
+	q := new(Circular[T, P])
+	q.lock = new(sync.Mutex)
 	q.notFull = sync.NewCond(q.lock)
 	q.notEmpty = sync.NewCond(q.lock)
 
@@ -55,6 +62,7 @@ func NewCircular[T any, P Pointer[T]](maxSize uint64) *Circular[T, P] {
 	return q
 }
 
+// IsEmpty returns true if the queue is empty.
 func (q *Circular[T, P]) IsEmpty() (empty bool) {
 	q.lock.Lock()
 	empty = q.isEmpty()
@@ -62,10 +70,13 @@ func (q *Circular[T, P]) IsEmpty() (empty bool) {
 	return
 }
 
+// isEmpty is an internal function used to check if the
+// queue is empty.
 func (q *Circular[T, P]) isEmpty() bool {
 	return q.head == q.tail
 }
 
+// IsFull returns true if the queue is full.
 func (q *Circular[T, P]) IsFull() (full bool) {
 	q.lock.Lock()
 	full = q.isFull()
@@ -73,10 +84,15 @@ func (q *Circular[T, P]) IsFull() (full bool) {
 	return
 }
 
+// isFull is an internal function used to check if the
+// queue is full.
 func (q *Circular[T, P]) isFull() bool {
 	return q.head == (q.tail+1)%q.maxSize
 }
 
+// IsClosed returns true if the queue is Closed
+//
+// The Drain method can be used to drain the queue after it is closed.
 func (q *Circular[T, P]) IsClosed() (closed bool) {
 	q.lock.Lock()
 	closed = q.isClosed()
@@ -84,10 +100,13 @@ func (q *Circular[T, P]) IsClosed() (closed bool) {
 	return
 }
 
+// isClosed is an internal function used to check if the
+// queue is closed.
 func (q *Circular[T, P]) isClosed() bool {
 	return q.closed
 }
 
+// Length returns the number of elements in the queue.
 func (q *Circular[T, P]) Length() (size int) {
 	q.lock.Lock()
 	size = q.length()
@@ -95,6 +114,7 @@ func (q *Circular[T, P]) Length() (size int) {
 	return
 }
 
+// length is an internal function used to get the number of elements in the queue.
 func (q *Circular[T, P]) length() int {
 	if q.tail < q.head {
 		return int(q.maxSize - q.head + q.tail)
@@ -102,6 +122,9 @@ func (q *Circular[T, P]) length() int {
 	return int(q.tail - q.head)
 }
 
+// Close closes the queue permanently.
+//
+// The Drain method can be used to drain the queue after it is closed.
 func (q *Circular[T, P]) Close() {
 	q.lock.Lock()
 	q.closed = true
@@ -110,6 +133,7 @@ func (q *Circular[T, P]) Close() {
 	q.lock.Unlock()
 }
 
+// Push adds an element to the queue.
 func (q *Circular[T, P]) Push(p P) error {
 	q.lock.Lock()
 LOOP:
@@ -129,6 +153,7 @@ LOOP:
 	return nil
 }
 
+// Pop removes an element from the queue.
 func (q *Circular[T, P]) Pop() (p P, err error) {
 	q.lock.Lock()
 LOOP:
@@ -148,21 +173,25 @@ LOOP:
 	return
 }
 
-func (q *Circular[T, P]) Drain() (packets []P) {
+// Drain removes all elements from the queue.
+// and returns them in a slice.
+//
+// This function should only be called after the queue is closed.
+func (q *Circular[T, P]) Drain() (values []P) {
 	q.lock.Lock()
 	if q.isEmpty() {
 		q.lock.Unlock()
 		return nil
 	}
 	if size := int(q.head) - int(q.tail); size > 0 {
-		packets = make([]P, 0, size)
+		values = make([]P, 0, size)
 	} else {
-		packets = make([]P, 0, -1*size)
+		values = make([]P, 0, -1*size)
 	}
-	for i := 0; i < cap(packets); i++ {
-		packets = append(packets, q.nodes[q.head])
+	for i := 0; i < cap(values); i++ {
+		values = append(values, q.nodes[q.head])
 		q.head = (q.head + 1) % q.maxSize
 	}
 	q.lock.Unlock()
-	return packets
+	return values
 }
