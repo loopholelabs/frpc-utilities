@@ -14,11 +14,13 @@
 package queue
 
 import (
-	"github.com/pkg/errors"
+	"errors"
 )
 
 var (
-	Closed = errors.New("queue is closed")
+	Closed     = errors.New("queue is closed")
+	FullError  = errors.New("queue is full")
+	EmptyError = errors.New("queue is empty")
 )
 
 // round takes an uint64 value and rounds up to the nearest power of 2
