@@ -154,13 +154,11 @@ func (l *Blocking[T, P]) Delete(node *Node[T, P]) {
 		node.prev.next = node.next
 		decrement = true
 	}
-	node.next = nil
-	node.prev = nil
 	if decrement {
 		l.len--
 	}
-	l.lock.Unlock()
 	l.pool.Put(node)
+	l.lock.Unlock()
 }
 
 // Pop removes and returns the node from the end of the Blocking linked list

@@ -107,8 +107,6 @@ func (l *Double[T, P]) Delete(node *Node[T, P]) {
 		node.prev.next = node.next
 		decrement = true
 	}
-	node.next = nil
-	node.prev = nil
 	if decrement {
 		l.len--
 	}
