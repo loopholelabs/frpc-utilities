@@ -17,23 +17,30 @@ import (
 	"testing"
 	"time"
 
-	"github.com/loopholelabs/frisbee-go/pkg/packet"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+type P struct {
+	Int    int
+	String string
+}
+
 func TestCircular(t *testing.T) {
 	t.Parallel()
 
-	testPacket := packet.Get
-	testPacket2 := func() *packet.Packet {
-		p := packet.Get()
-		p.Content.Write([]byte{1})
+	testPacket := func() *P {
+		return new(P)
+	}
+	testPacket2 := func() *P {
+		p := new(P)
+		p.Int = 1
+		p.String = "2"
 		return p
 	}
 
 	t.Run("success", func(t *testing.T) {
-		rb := NewCircular[packet.Packet, *packet.Packet](1)
+		rb := NewCircular[P, *P](1)
 		p := testPacket()
 		err := rb.Push(p)
 		assert.NoError(t, err)
@@ -42,12 +49,12 @@ func TestCircular(t *testing.T) {
 		assert.Equal(t, p, actual)
 	})
 	t.Run("out of capacity", func(t *testing.T) {
-		rb := NewCircular[packet.Packet, *packet.Packet](0)
+		rb := NewCircular[P, *P](0)
 		err := rb.Push(testPacket())
 		assert.NoError(t, err)
 	})
 	t.Run("out of capacity with non zero capacity, blocking", func(t *testing.T) {
-		rb := NewCircular[packet.Packet, *packet.Packet](1)
+		rb := NewCircular[P, *P](1)
 		p1 := testPacket()
 		err := rb.Push(p1)
 		assert.NoError(t, err)
@@ -76,7 +83,7 @@ func TestCircular(t *testing.T) {
 		}
 	})
 	t.Run("length calculations", func(t *testing.T) {
-		rb := NewCircular[packet.Packet, *packet.Packet](1)
+		rb := NewCircular[P, *P](1)
 		p1 := testPacket()
 
 		err := rb.Push(p1)
@@ -98,7 +105,7 @@ func TestCircular(t *testing.T) {
 		assert.Equal(t, uint64(1), rb.head)
 		assert.Equal(t, uint64(0), rb.tail)
 
-		rb = NewCircular[packet.Packet, *packet.Packet](4)
+		rb = NewCircular[P, *P](4)
 
 		err = rb.Push(p1)
 		assert.NoError(t, err)
@@ -167,7 +174,7 @@ func TestCircular(t *testing.T) {
 		assert.Equal(t, uint64(5), rb.tail)
 	})
 	t.Run("buffer closed", func(t *testing.T) {
-		rb := NewCircular[packet.Packet, *packet.Packet](1)
+		rb := NewCircular[P, *P](1)
 		assert.False(t, rb.IsClosed())
 		rb.Close()
 		assert.True(t, rb.IsClosed())
@@ -178,7 +185,7 @@ func TestCircular(t *testing.T) {
 	})
 	t.Run("pop empty", func(t *testing.T) {
 		done := make(chan struct{}, 1)
-		rb := NewCircular[packet.Packet, *packet.Packet](1)
+		rb := NewCircular[P, *P](1)
 		go func() {
 			_, _ = rb.Pop()
 			done <- struct{}{}
@@ -189,21 +196,21 @@ func TestCircular(t *testing.T) {
 		assert.Equal(t, 0, rb.Length())
 	})
 	t.Run("partial overflow, blocking", func(t *testing.T) {
-		rb := NewCircular[packet.Packet, *packet.Packet](4)
+		rb := NewCircular[P, *P](4)
 		p1 := testPacket()
-		p1.Metadata.Id = 1
+		p1.Int = 1
 
 		p2 := testPacket()
-		p2.Metadata.Id = 2
+		p2.Int = 2
 
 		p3 := testPacket()
-		p3.Metadata.Id = 3
+		p3.Int = 3
 
 		p4 := testPacket()
-		p4.Metadata.Id = 4
+		p4.Int = 4
 
 		p5 := testPacket()
-		p5.Metadata.Id = 5
+		p5.Int = 5
 
 		err := rb.Push(p1)
 		assert.NoError(t, err)
@@ -251,24 +258,24 @@ func TestCircular(t *testing.T) {
 		assert.Equal(t, 0, rb.Length())
 	})
 	t.Run("partial overflow, non-blocking", func(t *testing.T) {
-		rb := NewCircular[packet.Packet, *packet.Packet](4)
+		rb := NewCircular[P, *P](4)
 		p1 := testPacket()
-		p1.Metadata.Id = 1
+		p1.Int = 1
 
 		p2 := testPacket()
-		p2.Metadata.Id = 2
+		p2.Int = 2
 
 		p3 := testPacket()
-		p3.Metadata.Id = 3
+		p3.Int = 3
 
 		p4 := testPacket()
-		p4.Metadata.Id = 4
+		p4.Int = 4
 
 		p5 := testPacket()
-		p5.Metadata.Id = 5
+		p5.Int = 5
 
 		p6 := testPacket()
-		p6.Metadata.Id = 6
+		p6.Int = 6
 
 		err := rb.Push(p1)
 		assert.NoError(t, err)
