@@ -110,3 +110,29 @@ func TestConcurrentChunk(t *testing.T) {
 	close(start)
 	wg.Wait()
 }
+
+func TestInvalidChunkOffset(t *testing.T) {
+	client, data, bucket, obj := testClient(t)
+	var offset = len(data) + 1
+	const chunkSize = 512
+
+	chunk, err := NewChunk(client, context.Background(), chunkSize, int64(offset), bucket, obj)
+	require.NoError(t, err)
+
+	_, err = chunk.Wait()
+	require.Error(t, err)
+}
+
+func TestInvalidChunkSize(t *testing.T) {
+	client, data, bucket, obj := testClient(t)
+	const offset = 512
+	var chunkSize = len(data) + 1
+
+	chunk, err := NewChunk(client, context.Background(), int64(chunkSize), offset, bucket, obj)
+	require.NoError(t, err)
+
+	downloadedData, err := chunk.Wait()
+	require.NoError(t, err)
+	require.Equal(t, len(data)-offset, len(downloadedData))
+	require.Equal(t, data[offset:], downloadedData)
+}
