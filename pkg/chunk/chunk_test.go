@@ -14,7 +14,7 @@
 	limitations under the License.
 */
 
-package download
+package chunk
 
 import (
 	"bytes"
