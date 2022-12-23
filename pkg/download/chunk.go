@@ -60,7 +60,7 @@ type Chunk struct {
 	wg *sync.WaitGroup
 }
 
-func GetChunk(client *minio.Client, ctx context.Context, chunkSize int64, offset int64, bucket string, key string) (*Chunk, error) {
+func GetChunk(client *minio.Client, ctx context.Context, offset int64, size int64, bucket string, key string) (*Chunk, error) {
 	c := chunkPool.Get()
 	c.client = client
 	c.ctx = ctx
@@ -68,7 +68,7 @@ func GetChunk(client *minio.Client, ctx context.Context, chunkSize int64, offset
 	c.key = key
 
 	c.opts = new(minio.GetObjectOptions)
-	err := c.opts.SetRange(offset, offset+chunkSize-1)
+	err := c.opts.SetRange(offset, offset+size-1)
 	if err != nil {
 		return nil, err
 	}
