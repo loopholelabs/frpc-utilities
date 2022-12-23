@@ -18,9 +18,16 @@ package download
 
 import (
 	"context"
+	"github.com/loopholelabs/common/pkg/pool"
 	"github.com/minio/minio-go/v7"
 	"io"
 	"sync"
+)
+
+var (
+	chunkPool = pool.NewPool[Chunk, *Chunk](func() *Chunk {
+		return new(Chunk)
+	})
 )
 
 // Chunk manages downloading single chunk of data from a remote server
@@ -31,12 +38,6 @@ type Chunk struct {
 	// ctx is the context to use for the download
 	ctx context.Context
 
-	// chunkSize is the size of the chunk to download
-	chunkSize int64
-
-	// offset is the offset of the chunk to download
-	offset int64
-
 	// bucket is the S3 bucket to download the chunk from
 	bucket string
 
@@ -44,7 +45,7 @@ type Chunk struct {
 	key string
 
 	// opts are the options to use for the download
-	opts minio.GetObjectOptions
+	opts *minio.GetObjectOptions
 
 	// res is the S3 response from the download
 	obj *minio.Object
@@ -56,30 +57,34 @@ type Chunk struct {
 	err error
 
 	// wg is the wait group used to wait for the chunk to finish downloading
-	wg sync.WaitGroup
+	wg *sync.WaitGroup
 }
 
-func NewChunk(client *minio.Client, ctx context.Context, chunkSize int64, offset int64, bucket string, key string) (*Chunk, error) {
-	c := &Chunk{
-		client:    client,
-		ctx:       ctx,
-		chunkSize: chunkSize,
-		offset:    offset,
-		bucket:    bucket,
-		key:       key,
-	}
+func GetChunk(client *minio.Client, ctx context.Context, chunkSize int64, offset int64, bucket string, key string) (*Chunk, error) {
+	c := chunkPool.Get()
+	c.client = client
+	c.ctx = ctx
+	c.bucket = bucket
+	c.key = key
 
+	c.opts = new(minio.GetObjectOptions)
 	err := c.opts.SetRange(offset, offset+chunkSize-1)
 	if err != nil {
 		return nil, err
 	}
+
+	c.wg = new(sync.WaitGroup)
 	c.wg.Add(1)
 	go c.do()
 	return c, nil
 }
 
+func ReturnChunk(c *Chunk) {
+	chunkPool.Put(c)
+}
+
 func (c *Chunk) do() {
-	c.obj, c.err = c.client.GetObject(c.ctx, c.bucket, c.key, c.opts)
+	c.obj, c.err = c.client.GetObject(c.ctx, c.bucket, c.key, *c.opts)
 	if c.err == nil {
 		c.data, c.err = io.ReadAll(c.obj)
 		_ = c.obj.Close()
@@ -90,4 +95,18 @@ func (c *Chunk) do() {
 func (c *Chunk) Wait() ([]byte, error) {
 	c.wg.Wait()
 	return c.data, c.err
+}
+
+func (c *Chunk) Reset() {
+	c.client = nil
+	c.ctx = nil
+	c.opts = nil
+	c.obj = nil
+	c.data = nil
+	c.err = nil
+	c.wg = nil
+}
+
+func (c *Chunk) Return() {
+	ReturnChunk(c)
 }

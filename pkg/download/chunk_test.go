@@ -66,7 +66,7 @@ func TestChunk(t *testing.T) {
 	var offset int64 = 0
 	const chunkSize = 512
 
-	chunk, err := NewChunk(client, context.Background(), chunkSize, offset, bucket, obj)
+	chunk, err := GetChunk(client, context.Background(), chunkSize, offset, bucket, obj)
 	require.NoError(t, err)
 
 	downloadedData, err := chunk.Wait()
@@ -74,14 +74,18 @@ func TestChunk(t *testing.T) {
 	require.Equal(t, chunkSize, len(downloadedData))
 	require.Equal(t, data[:chunkSize], downloadedData)
 
+	chunk.Return()
+
 	offset += chunkSize * 2
-	chunk, err = NewChunk(client, context.Background(), chunkSize, offset, bucket, obj)
+	chunk, err = GetChunk(client, context.Background(), chunkSize, offset, bucket, obj)
 	require.NoError(t, err)
 
 	downloadedData, err = chunk.Wait()
 	require.NoError(t, err)
 	require.Equal(t, chunkSize, len(downloadedData))
 	require.Equal(t, data[offset:offset+chunkSize], downloadedData)
+
+	chunk.Return()
 }
 
 func TestConcurrentChunk(t *testing.T) {
@@ -89,7 +93,7 @@ func TestConcurrentChunk(t *testing.T) {
 	const offset = 32
 	const chunkSize = 512
 
-	chunk, err := NewChunk(client, context.Background(), chunkSize, offset, bucket, obj)
+	chunk, err := GetChunk(client, context.Background(), chunkSize, offset, bucket, obj)
 	require.NoError(t, err)
 
 	start := make(chan struct{})
@@ -109,6 +113,8 @@ func TestConcurrentChunk(t *testing.T) {
 
 	close(start)
 	wg.Wait()
+
+	chunk.Return()
 }
 
 func TestInvalidChunkOffset(t *testing.T) {
@@ -116,11 +122,12 @@ func TestInvalidChunkOffset(t *testing.T) {
 	var offset = len(data) + 1
 	const chunkSize = 512
 
-	chunk, err := NewChunk(client, context.Background(), chunkSize, int64(offset), bucket, obj)
+	chunk, err := GetChunk(client, context.Background(), chunkSize, int64(offset), bucket, obj)
 	require.NoError(t, err)
 
 	_, err = chunk.Wait()
 	require.Error(t, err)
+	chunk.Return()
 }
 
 func TestInvalidChunkSize(t *testing.T) {
@@ -128,11 +135,12 @@ func TestInvalidChunkSize(t *testing.T) {
 	const offset = 512
 	var chunkSize = len(data) + 1
 
-	chunk, err := NewChunk(client, context.Background(), int64(chunkSize), offset, bucket, obj)
+	chunk, err := GetChunk(client, context.Background(), int64(chunkSize), offset, bucket, obj)
 	require.NoError(t, err)
 
 	downloadedData, err := chunk.Wait()
 	require.NoError(t, err)
 	require.Equal(t, len(data)-offset, len(downloadedData))
 	require.Equal(t, data[offset:], downloadedData)
+	chunk.Return()
 }
