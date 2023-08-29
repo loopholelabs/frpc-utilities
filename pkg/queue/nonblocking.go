@@ -33,7 +33,7 @@ type NonBlocking[T any, P Pointer[T]] struct {
 	_padding3 [8]uint64 //nolint:structcheck,unused
 	closed    bool
 	_padding4 [8]uint64 //nolint:structcheck,unused
-	lock      *sync.Mutex
+	lock      *sync.RWMutex
 	_padding5 [8]uint64 //nolint:structcheck,unused
 	nodes     []P
 }
@@ -41,7 +41,7 @@ type NonBlocking[T any, P Pointer[T]] struct {
 // NewNonBlocking creates a new circular queue with the given size.
 func NewNonBlocking[T any, P Pointer[T]](maxSize uint64) *NonBlocking[T, P] {
 	q := new(NonBlocking[T, P])
-	q.lock = new(sync.Mutex)
+	q.lock = new(sync.RWMutex)
 	q.head = 0
 	q.tail = 0
 	maxSize++
@@ -57,9 +57,9 @@ func NewNonBlocking[T any, P Pointer[T]](maxSize uint64) *NonBlocking[T, P] {
 
 // IsEmpty returns true if the queue is empty.
 func (q *NonBlocking[T, P]) IsEmpty() (empty bool) {
-	q.lock.Lock()
+	q.lock.RLock()
 	empty = q.isEmpty()
-	q.lock.Unlock()
+	q.lock.RUnlock()
 	return
 }
 
@@ -71,9 +71,9 @@ func (q *NonBlocking[T, P]) isEmpty() bool {
 
 // IsFull returns true if the queue is full.
 func (q *NonBlocking[T, P]) IsFull() (full bool) {
-	q.lock.Lock()
+	q.lock.RLock()
 	full = q.isFull()
-	q.lock.Unlock()
+	q.lock.RUnlock()
 	return
 }
 
@@ -87,9 +87,9 @@ func (q *NonBlocking[T, P]) isFull() bool {
 //
 // The Drain method can be used to drain the queue after it is closed.
 func (q *NonBlocking[T, P]) IsClosed() (closed bool) {
-	q.lock.Lock()
+	q.lock.RLock()
 	closed = q.isClosed()
-	q.lock.Unlock()
+	q.lock.RUnlock()
 	return
 }
 
@@ -101,9 +101,9 @@ func (q *NonBlocking[T, P]) isClosed() bool {
 
 // Length returns the number of elements in the queue.
 func (q *NonBlocking[T, P]) Length() (size int) {
-	q.lock.Lock()
+	q.lock.RLock()
 	size = q.length()
-	q.lock.Unlock()
+	q.lock.RUnlock()
 	return
 }
 

@@ -33,7 +33,7 @@ type Circular[T any, P Pointer[T]] struct {
 	_padding3 [8]uint64 //nolint:structcheck,unused
 	closed    bool
 	_padding4 [8]uint64 //nolint:structcheck,unused
-	lock      *sync.Mutex
+	lock      *sync.RWMutex
 	_padding5 [8]uint64 //nolint:structcheck,unused
 	notEmpty  *sync.Cond
 	_padding6 [8]uint64 //nolint:structcheck,unused
@@ -45,7 +45,7 @@ type Circular[T any, P Pointer[T]] struct {
 // NewCircular creates a new circular queue with the given size.
 func NewCircular[T any, P Pointer[T]](maxSize uint64) *Circular[T, P] {
 	q := new(Circular[T, P])
-	q.lock = new(sync.Mutex)
+	q.lock = new(sync.RWMutex)
 	q.notFull = sync.NewCond(q.lock)
 	q.notEmpty = sync.NewCond(q.lock)
 
@@ -64,9 +64,9 @@ func NewCircular[T any, P Pointer[T]](maxSize uint64) *Circular[T, P] {
 
 // IsEmpty returns true if the queue is empty.
 func (q *Circular[T, P]) IsEmpty() (empty bool) {
-	q.lock.Lock()
+	q.lock.RLock()
 	empty = q.isEmpty()
-	q.lock.Unlock()
+	q.lock.RUnlock()
 	return
 }
 
@@ -78,9 +78,9 @@ func (q *Circular[T, P]) isEmpty() bool {
 
 // IsFull returns true if the queue is full.
 func (q *Circular[T, P]) IsFull() (full bool) {
-	q.lock.Lock()
+	q.lock.RLock()
 	full = q.isFull()
-	q.lock.Unlock()
+	q.lock.RUnlock()
 	return
 }
 
@@ -94,9 +94,9 @@ func (q *Circular[T, P]) isFull() bool {
 //
 // The Drain method can be used to drain the queue after it is closed.
 func (q *Circular[T, P]) IsClosed() (closed bool) {
-	q.lock.Lock()
+	q.lock.RLock()
 	closed = q.isClosed()
-	q.lock.Unlock()
+	q.lock.RUnlock()
 	return
 }
 
@@ -108,9 +108,9 @@ func (q *Circular[T, P]) isClosed() bool {
 
 // Length returns the number of elements in the queue.
 func (q *Circular[T, P]) Length() (size int) {
-	q.lock.Lock()
+	q.lock.RLock()
 	size = q.length()
-	q.lock.Unlock()
+	q.lock.RUnlock()
 	return
 }
 

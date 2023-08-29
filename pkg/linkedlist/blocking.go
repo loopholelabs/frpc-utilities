@@ -26,7 +26,7 @@ import (
 // or the list is closed.
 type Blocking[T any, P Pointer[T]] struct {
 	_padding0 [8]uint64 //nolint:structcheck,unused
-	lock      *sync.Mutex
+	lock      *sync.RWMutex
 	_padding1 [8]uint64 //nolint:structcheck,unused
 	head      *Node[T, P]
 	_padding2 [8]uint64 //nolint:structcheck,unused
@@ -45,7 +45,7 @@ type Blocking[T any, P Pointer[T]] struct {
 // FIFO queue when used with the Push and Pop methods.
 func NewBlocking[T any, P Pointer[T]]() *Blocking[T, P] {
 	l := new(Blocking[T, P])
-	l.lock = new(sync.Mutex)
+	l.lock = new(sync.RWMutex)
 	l.notEmpty = sync.NewCond(l.lock)
 	l.pool = pool.NewPool[Node[T, P], *Node[T, P]](NewNode[T, P])
 	return l
@@ -56,9 +56,9 @@ func NewBlocking[T any, P Pointer[T]]() *Blocking[T, P] {
 //
 // The Drain method can be used to drain the list after it is closed.
 func (l *Blocking[T, P]) IsClosed() (closed bool) {
-	l.lock.Lock()
+	l.lock.RLock()
 	closed = l.isClosed()
-	l.lock.Unlock()
+	l.lock.RUnlock()
 	return
 }
 
@@ -80,9 +80,9 @@ func (l *Blocking[T, P]) Close() {
 
 // Length returns the count of nodes stored in the Blocking linked list
 func (l *Blocking[T, P]) Length() (len uint64) {
-	l.lock.Lock()
+	l.lock.RLock()
 	len = l.len
-	l.lock.Unlock()
+	l.lock.RUnlock()
 	return
 }
 

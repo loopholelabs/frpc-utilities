@@ -32,7 +32,7 @@ func NewDouble[T any, P Pointer[T]]() *Double[T, P] {
 // Double is a double-linked list
 type Double[T any, P Pointer[T]] struct {
 	_padding0 [8]uint64 //nolint:structcheck,unused
-	lock      sync.Mutex
+	lock      sync.RWMutex
 	_padding1 [8]uint64 //nolint:structcheck,unused
 	head      *Node[T, P]
 	_padding2 [8]uint64 //nolint:structcheck,unused
@@ -45,9 +45,9 @@ type Double[T any, P Pointer[T]] struct {
 
 // Length returns the count of nodes stored in the double linked list
 func (l *Double[T, P]) Length() (len uint64) {
-	l.lock.Lock()
+	l.lock.RLock()
 	len = l.len
-	l.lock.Unlock()
+	l.lock.RUnlock()
 	return
 }
 
