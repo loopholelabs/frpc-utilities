@@ -16,8 +16,13 @@ const (
 	GCTime = time.Minute
 )
 
+type Lock struct {
+	ch chan struct{}
+	mu sync.RWMutex
+}
+
 type HashLock[T comparable] struct {
-	locks   map[T]chan struct{}
+	locks   map[T]*Lock
 	mu      sync.Mutex
 	timeout time.Duration
 
@@ -33,7 +38,7 @@ func New[T comparable](d time.Duration) *HashLock[T] {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	h := &HashLock[T]{
-		locks:   make(map[T]chan struct{}),
+		locks:   make(map[T]*Lock),
 		timeout: d,
 		ctx:     ctx,
 		cancel:  cancel,
@@ -51,7 +56,10 @@ func (l *HashLock[T]) Close() {
 }
 
 func (l *HashLock[T]) Lock(key T) {
-	l.get(key) <- struct{}{}
+	lock := l.get(key)
+	lock.mu.RLock()
+	lock.ch <- struct{}{}
+	lock.mu.RUnlock()
 	if l.timeout > 0 {
 		time.AfterFunc(l.timeout, func() {
 			l.Unlock(key)
@@ -60,27 +68,24 @@ func (l *HashLock[T]) Lock(key T) {
 }
 
 func (l *HashLock[T]) Unlock(key T) {
+	lock := l.get(key)
+	lock.mu.RLock()
 	select {
-	case <-l.get(key):
+	case <-lock.ch:
 	default:
 	}
+	lock.mu.RUnlock()
 }
 
-func (l *HashLock[T]) DeleteKey(key T) {
+func (l *HashLock[T]) get(key T) *Lock {
 	l.mu.Lock()
-	delete(l.locks, key)
-	l.mu.Unlock()
-}
-
-func (l *HashLock[T]) get(key T) chan struct{} {
-	l.mu.Lock()
-	lockCh, found := l.locks[key]
+	lock, found := l.locks[key]
 	if !found {
-		lockCh = make(chan struct{}, 1)
-		l.locks[key] = lockCh
+		lock = &Lock{ch: make(chan struct{}, 1)}
+		l.locks[key] = lock
 	}
 	l.mu.Unlock()
-	return lockCh
+	return lock
 }
 
 func (l *HashLock[T]) gc() {
@@ -92,8 +97,11 @@ func (l *HashLock[T]) gc() {
 		case <-time.After(GCTime):
 			l.mu.Lock()
 			for k, v := range l.locks {
-				if len(v) == 0 {
-					delete(l.locks, k)
+				if v.mu.TryLock() {
+					if len(v.ch) == 0 {
+						delete(l.locks, k)
+					}
+					v.mu.Unlock()
 				}
 			}
 			l.mu.Unlock()
