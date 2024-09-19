@@ -138,6 +138,7 @@ RETRY:
 		}
 		runtime.Gosched()
 	}
+	// TODO: detected race condition here and on line 174
 	newNode.data = item
 	atomic.StoreUint64(&newNode.position, head+1)
 	return nil
