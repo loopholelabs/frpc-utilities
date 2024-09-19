@@ -77,6 +77,8 @@ func (l *HashLock[T]) Unlock(key T) {
 	lock.mu.RUnlock()
 }
 
+// get returns the lock.mu in Rlock mode, so it must be unlocked by the caller - otherwise the
+// garbage collector will not be able to clean it up
 func (l *HashLock[T]) get(key T) *Lock {
 	l.mu.Lock()
 	lock, found := l.locks[key]
