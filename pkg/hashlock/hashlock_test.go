@@ -64,3 +64,31 @@ func TestRelock(t *testing.T) {
 	endTime := time.Now()
 	require.Less(t, endTime.Sub(startTime), time.Millisecond)
 }
+
+func (l *HashLock[T]) LockHacked(key T) {
+	lock := l.get(key)
+	time.Sleep(3 * time.Second)
+	lock.mu.RLock()
+	lock.ch <- struct{}{}
+	lock.mu.RUnlock()
+	if l.timeout > 0 {
+		time.AfterFunc(l.timeout, func() {
+			l.Unlock(key)
+		})
+	}
+}
+
+func TestDoubleLockWhenGCDuringLock(t *testing.T) {
+	GCTime = time.Nanosecond
+	_DefaultTimeout := 5 * time.Second
+
+	h := New[string](_DefaultTimeout)
+	t.Cleanup(func() { h.Close() })
+
+	h.LockHacked(t.Name())
+
+	// Verify the first lock timeout before we're able to lock again.
+	start := time.Now()
+	h.Lock(t.Name())
+	require.GreaterOrEqual(t, time.Now().Sub(start), DefaultTimeout)
+}

@@ -8,10 +8,12 @@ import (
 	"time"
 )
 
-var (
+const (
 	// DefaultTimeout is the default timeout for locks
 	DefaultTimeout = time.Second
+)
 
+var (
 	// GCTime is the time between garbage collection runs
 	GCTime = time.Minute
 )
