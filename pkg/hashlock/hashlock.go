@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const (
+var (
 	// DefaultTimeout is the default timeout for locks
 	DefaultTimeout = time.Second
 
@@ -57,7 +57,6 @@ func (l *HashLock[T]) Close() {
 
 func (l *HashLock[T]) Lock(key T) {
 	lock := l.get(key)
-	lock.mu.RLock()
 	lock.ch <- struct{}{}
 	lock.mu.RUnlock()
 	if l.timeout > 0 {
@@ -69,7 +68,6 @@ func (l *HashLock[T]) Lock(key T) {
 
 func (l *HashLock[T]) Unlock(key T) {
 	lock := l.get(key)
-	lock.mu.RLock()
 	select {
 	case <-lock.ch:
 	default:
@@ -84,6 +82,7 @@ func (l *HashLock[T]) get(key T) *Lock {
 		lock = &Lock{ch: make(chan struct{}, 1)}
 		l.locks[key] = lock
 	}
+	lock.mu.RLock()
 	l.mu.Unlock()
 	return lock
 }
